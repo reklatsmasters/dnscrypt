@@ -1,0 +1,117 @@
+'use strict';
+
+const Emitter = require('events');
+const timeout = require('timeout-refresh');
+const uset = require('unordered-set');
+
+/**
+ * Smart storage for pending queries.
+ */
+class TimedQueue extends Emitter {
+  /**
+   * @class {TimedQueue}
+   * @param {number} time Time in ms to wait for query.
+   */
+  constructor(time) {
+    super();
+
+    this.ms = time;
+    this.timer = null;
+    this.queue = [];
+  }
+
+  /**
+   * Reset the timer.
+   */
+  reset() {
+    if (this.timer === null) {
+      this.timer = timeout(this.ms, this.timeout, this);
+    } else {
+      this.timer.refresh();
+    }
+  }
+
+  /**
+   * Add the value to the queue.
+   * @param {*} data
+   */
+  push(data) {
+    uset.add(this.queue, {
+      data,
+      timeout: Date.now() + this.ms,
+      _index: 0, // required for `unordered-set`
+    });
+
+    if (this.timer === null) {
+      this.reset();
+    }
+  }
+
+  /**
+   * Find the query and remove it.
+   * @param {Function} predicate
+   * @returns {*}
+   */
+  drop(predicate) {
+    const item = this.queue.find((value, i) => predicate(value.data, i));
+
+    if (item !== undefined) {
+      uset.remove(this.queue, item);
+
+      if (this.queue.length === 0 && this.timer !== null) {
+        this.timer.destroy();
+        this.timer = null;
+      }
+
+      return item.data;
+    }
+  }
+
+  /**
+   * Remote pending queries and timer.
+   */
+  clear() {
+    this.queue.length = 0;
+
+    if (this.timer !== null) {
+      this.timer.destroy();
+      this.timer = null;
+    }
+  }
+
+  /**
+   * Remove items by timeout.
+   */
+  timeout() {
+    if (this.queue.length === 0 && this.timer !== null) {
+      this.timer.destroy();
+      this.timer = null;
+      return;
+    }
+
+    const removed = [];
+    const now = Date.now();
+
+    if (this.queue.length === 0 && this.timer !== null) {
+      this.timer.destroy();
+      this.timer = null;
+    }
+
+    this.queue.forEach(item => {
+      if (item.timeout <= now) {
+        removed.push(item);
+        this.emit('timeout', item.data);
+      }
+    });
+
+    removed.forEach(item => uset.remove(this.queue, item));
+
+    if (this.queue.length !== 0) {
+      this.reset();
+    }
+  }
+}
+
+module.exports = {
+  TimedQueue,
+};
