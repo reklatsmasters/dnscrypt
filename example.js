@@ -1,22 +1,16 @@
 'use strict';
 
-const DNSCrypt = require('./src/dnscrypt');
-
-const dns = new DNSCrypt().ref();
+const dnscrypt = require('.');
 
 // PTR -> IP(google.com).in-addr.arpa
 // NAPTR -> digitoffice.ru
 // CAA -> google.com
 // SRV -> _sip._udp.sip.voice.google.com
 
-dns.resolveGeneric('yandex.ru', 'ABC', (error, answer) => {
+dnscrypt.resolve4('ya.ru', (error, answer) => {
   if (error) {
     console.error(error);
   } else {
     console.log(answer);
   }
-
-  dns.close();
 });
-
-dns.on('error', error => console.error(error));
