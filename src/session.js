@@ -12,7 +12,7 @@ const DEFAULT_RESOLVER =
 /**
  * This class implements DNSCrypt session.
  */
-module.exports = class Session extends Emitter {
+class Session extends Emitter {
   /**
    * @class {Session}
    * @param {number} queryTimeout
@@ -43,4 +43,9 @@ module.exports = class Session extends Emitter {
 
     debug('use resolver', this.resolver);
   }
+}
+
+module.exports = {
+  Session,
+  DEFAULT_RESOLVER,
 };

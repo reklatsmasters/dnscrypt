@@ -5,12 +5,8 @@ const { isIPv4 } = require('net');
 const Emitter = require('events');
 const isBase64 = require('is-base64');
 const rrtypes = require('dns-packet/types');
-const Session = require('./session');
+const { Session } = require('./session');
 const Protocol = require('./protocol');
-
-const defaultOptions = {
-  ttl: false,
-};
 
 const upper = s => s.toUpperCase();
 const lower = s => s.toLowerCase();
@@ -39,7 +35,7 @@ module.exports = class DNSCrypt extends Emitter {
     if (options.socket) {
       this.socket = options.socket;
     } else {
-      this.socket = dgram.createSocket(socketType).unref();
+      this.socket = dgram.createSocket(socketType);
     }
 
     this.socket.once('close', () => {
@@ -103,15 +99,11 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveGeneric(hostname, rrtype, callback) {
-    if (typeof callback !== 'function') {
-      throw new TypeError('Required callback');
-    }
-
     const host = lower(hostname);
     const type = upper(rrtype);
 
     if (rrtypes.toType(rrtype) === 0) {
-      return callback(new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`));
+      throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
     }
 
     this.lookup(host, type, (error, response) => {
@@ -146,12 +138,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @param {Function} callback
    * @returns {void}
    */
-  resolveAddress(hostname, rrtype, options = defaultOptions, callback) {
-    if (typeof options === 'function') {
-      callback = options; // eslint-disable-line no-param-reassign
-      options = defaultOptions; // eslint-disable-line no-param-reassign
-    }
-
+  resolveAddress(hostname, rrtype, options, callback) {
     this.resolveGeneric(hostname, rrtype, (error, answers) => {
       if (error) {
         return callback(error);
@@ -332,22 +319,13 @@ module.exports = class DNSCrypt extends Emitter {
   }
 
   /**
-   * Start looking up.
+   * Uses the DNS protocol to resolve a hostname into an array of the resource records..
    * @param {string} hostname Hostname to resolve.
-   * @param {string} [rrtype] Resource record type.
+   * @param {string} rrtype Resource record type.
    * @param {Function} callback
    * @returns {void}
    */
   resolve(hostname, rrtype, callback) {
-    if (typeof rrtype === 'function') {
-      callback = rrtype; // eslint-disable-line no-param-reassign
-      rrtype = 'A'; // eslint-disable-line no-param-reassign
-    }
-
-    if (typeof callback !== 'function') {
-      throw new TypeError('Required callback');
-    }
-
     switch (rrtype) {
       case 'A':
         this.resolve4(hostname, callback);
@@ -377,7 +355,13 @@ module.exports = class DNSCrypt extends Emitter {
         this.resolveTxt(hostname, callback);
         break;
       default:
-        return callback(new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`));
+        break;
     }
+
+    if (rrtypes.toType(rrtype) === 0) {
+      throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
+    }
+
+    this.resolveGeneric(hostname, rrtype, callback);
   }
 };
