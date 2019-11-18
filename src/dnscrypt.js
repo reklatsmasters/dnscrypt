@@ -3,7 +3,6 @@
 const dgram = require('dgram');
 const { isIPv4 } = require('net');
 const Emitter = require('events');
-const isBase64 = require('is-base64');
 const rrtypes = require('dns-packet/types');
 const { Session } = require('./session');
 const Protocol = require('./protocol');
@@ -18,25 +17,20 @@ module.exports = class DNSCrypt extends Emitter {
   /**
    * @class {DNSCrypt}
    * @param {Object} options
-   * @param {dgram.Socket} [options.socket] UDP socket.
    * @param {string} [options.sdns] Secure DNS resolver config.
+   * @param {number} [options.timeout] DNS query timeout.
    */
   constructor(options = {}) {
     super();
 
     this.session = new Session();
 
-    if (isBase64(options.sdns) && options.sdns.length > 0) {
+    if (typeof options.sdns === 'string' && options.sdns.startsWith('sdns://')) {
       this.session.setResolver(options.sdns);
     }
 
     const socketType = isIPv4(this.session.serverAddress) ? 'udp4' : 'udp6';
-
-    if (options.socket) {
-      this.socket = options.socket;
-    } else {
-      this.socket = dgram.createSocket(socketType);
-    }
+    this.socket = dgram.createSocket(socketType);
 
     this.socket.once('close', () => {
       this.emit('close');
@@ -74,6 +68,19 @@ module.exports = class DNSCrypt extends Emitter {
   ref() {
     this.socket.ref();
     return this;
+  }
+
+  /**
+   * Sets secure config of server to be used when performing DNS resolution.
+   * @param {string} sdns Secure DNS resolver config.
+   */
+  setResolver(sdns) {
+    if (typeof sdns === 'string' && sdns.startsWith('sdns://')) {
+      this.session.setResolver(sdns);
+      this.protocol.forgetCertificate();
+    } else {
+      throw new TypeError('Invalid argument "sdns"');
+    }
   }
 
   /**

@@ -9,6 +9,8 @@ const { TimedQueue } = require('./timed-queue');
 const DEFAULT_RESOLVER =
   'sdns://AQYAAAAAAAAADTkuOS45LjEwOjg0NDMgZ8hHuMh1jNEgJFVDvnVnRt803x2EwAuMRwNo34Idhj4ZMi5kbnNjcnlwdC1jZXJ0LnF1YWQ5Lm5ldA';
 
+const DEFAULT_TIMEOUT = 2e3;
+
 /**
  * This class implements DNSCrypt session.
  */
@@ -17,7 +19,7 @@ class Session extends Emitter {
    * @class {Session}
    * @param {number} queryTimeout
    */
-  constructor(queryTimeout = 2e3) {
+  constructor(queryTimeout = DEFAULT_TIMEOUT) {
     super();
     this.setResolver(DEFAULT_RESOLVER);
 
@@ -48,4 +50,5 @@ class Session extends Emitter {
 module.exports = {
   Session,
   DEFAULT_RESOLVER,
+  DEFAULT_TIMEOUT,
 };

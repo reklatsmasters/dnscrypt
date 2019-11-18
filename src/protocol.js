@@ -10,7 +10,7 @@ const cert = require('./certificate');
 const dnssec = require('./dnssec');
 
 // INIT -> REQUEST_CERTIFICATE -> CERTIFICATE -> READY
-//  |---------------------------------------------^
+//  ^---------------------------------------------|
 
 const DNSC_INIT = 'DNSC_INIT'; // init state
 const DNSC_REQUEST_CERTIFICATE = 'DNSC_REQUEST_CERTIFICATE';
@@ -66,6 +66,17 @@ module.exports = class Protocol extends Emitter {
     this.machine.on(DNSC_READY, () => this.lookupQueue());
 
     socket.on('message', (message, rinfo) => this.onmessage(message, rinfo));
+  }
+
+  /**
+   * Reset certificate state to default.
+   */
+  forgetCertificate() {
+    this.session.certificate = null;
+
+    if (this.machine.state !== DNSC_INIT) {
+      this.machine.next(DNSC_INIT);
+    }
   }
 
   /**
@@ -148,8 +159,13 @@ module.exports = class Protocol extends Emitter {
   /**
    * Check request ID before handle certificate.
    * @param {Buffer} message
+   * @returns {void}
    */
   oncertificate(message) {
+    if (this.machine.state !== DNSC_REQUEST_CERTIFICATE) {
+      return;
+    }
+
     const response = packet.decode(message);
 
     if (response.id !== this.session.lastDnsId) {

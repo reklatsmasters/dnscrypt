@@ -3,7 +3,9 @@
 const dnsstamp = require('dnsstamp').DNSStamp;
 const { fromCallback } = require('universalify');
 const DNSCrypt = require('./dnscrypt');
-const { DEFAULT_RESOLVER } = require('./session');
+const { DEFAULT_RESOLVER, DEFAULT_TIMEOUT } = require('./session');
+
+const _resolver = Symbol('resolver');
 
 module.exports = {
   resolve: fromCallback(resolve),
@@ -17,6 +19,7 @@ module.exports = {
   resolveSrv: fromCallback(resolveSrv),
   resolveTxt: fromCallback(resolveTxt),
   getServers,
+  createResolver,
 };
 
 /**
@@ -73,7 +76,7 @@ function resolve4(hostname, options, callback) {
   checkCallback(callback);
 
   const ttl = !!options.ttl || false;
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -96,7 +99,7 @@ function resolve6(hostname, options, callback) {
   checkCallback(callback);
 
   const ttl = !!options.ttl || false;
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -113,7 +116,7 @@ function resolveCname(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -130,7 +133,7 @@ function resolveNs(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -147,7 +150,7 @@ function resolvePtr(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -164,7 +167,7 @@ function resolveMx(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -181,7 +184,7 @@ function resolveSoa(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -198,7 +201,7 @@ function resolveSrv(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -215,7 +218,7 @@ function resolveTxt(hostname, callback) {
   checkHostname(hostname);
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -243,7 +246,7 @@ function resolve(hostname, rrtype, callback) {
 
   checkCallback(callback);
 
-  const dns = new DNSCrypt();
+  const dns = this instanceof DNSCrypt ? this : new DNSCrypt();
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
@@ -256,4 +259,119 @@ function resolve(hostname, rrtype, callback) {
  */
 function getServers() {
   return [dnsstamp.parse(DEFAULT_RESOLVER)];
+}
+
+/**
+ * An independent resolver for DNS requests.
+ */
+class Resolver {
+  /**
+   * @class {Resolver}
+   * @param {Object} options
+   * @param {string} [options.sdns] Secure DNS resolver config.
+   * @param {number} [options.timeout] DNS query timeout.
+   * @param {boolean} [options.unref] Call `unref` on internal socket.
+   */
+  constructor(options) {
+    const dns = new DNSCrypt(options);
+
+    if (options.unref) {
+      dns.unref();
+    }
+
+    this[_resolver] = dns;
+  }
+
+  /**
+   * Returns an array of active DNS servers.
+   * @returns {DNSStamp[]}
+   */
+  getServers() {
+    /** @type {DNSCrypt} */
+    const client = this[_resolver];
+
+    return getServers(client.session.sdns);
+  }
+
+  /**
+   * Sets secure config of server to be used when performing DNS resolution.
+   * @param {string} sdns Secure DNS resolver config.
+   */
+  setServers(sdns) {
+    /** @type {DNSCrypt} */
+    const client = this[_resolver];
+
+    client.setResolver(sdns);
+  }
+}
+
+/**
+ * Create a new independent resolver for DNS requests.
+ * @param {Object} options
+ * @param {string} [options.sdns] Secure DNS resolver config.
+ * @param {number} [options.timeout] DNS query timeout.
+ * @param {boolean} [options.unref] Call `unref` on internal socket.
+ * @returns {Resolver}
+ */
+function createResolver(options) {
+  let unref = false;
+  let sdns = DEFAULT_RESOLVER;
+  let timeout = DEFAULT_TIMEOUT;
+
+  if (typeof options.unref === 'boolean') {
+    unref = options.unref; // eslint-disable-line prefer-destructuring
+  }
+
+  if (typeof options.sdns === 'string') {
+    sdns = options.sdns; // eslint-disable-line prefer-destructuring
+  }
+
+  if (typeof options.timeout === 'number' && options.timeout > 0) {
+    timeout = options.timeout; // eslint-disable-line prefer-destructuring
+  }
+
+  const resolver = new Resolver({ unref, sdns, timeout });
+
+  const props = {
+    resolve: { configurable: false, enumerable: true, value: resolve.bind(resolver[_resolver]) },
+    resolve4: { configurable: false, enumerable: true, value: resolve4.bind(resolver[_resolver]) },
+    resolve6: { configurable: false, enumerable: true, value: resolve6.bind(resolver[_resolver]) },
+    resolveCname: {
+      configurable: false,
+      enumerable: true,
+      value: resolveCname.bind(resolver[_resolver]),
+    },
+    resolveNs: {
+      configurable: false,
+      enumerable: true,
+      value: resolveNs.bind(resolver[_resolver]),
+    },
+    resolvePtr: {
+      configurable: false,
+      enumerable: true,
+      value: resolvePtr.bind(resolver[_resolver]),
+    },
+    resolveMx: {
+      configurable: false,
+      enumerable: true,
+      value: resolveMx.bind(resolver[_resolver]),
+    },
+    resolveSoa: {
+      configurable: false,
+      enumerable: true,
+      value: resolveSoa.bind(resolver[_resolver]),
+    },
+    resolveSrv: {
+      configurable: false,
+      enumerable: true,
+      value: resolveSrv.bind(resolver[_resolver]),
+    },
+    resolveTxt: {
+      configurable: false,
+      enumerable: true,
+      value: resolveTxt.bind(resolver[_resolver]),
+    },
+  };
+
+  return Object.defineProperties(resolver, props);
 }
