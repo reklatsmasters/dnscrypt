@@ -195,7 +195,10 @@ module.exports = class DNSCrypt extends Emitter {
         return callback(error);
       }
 
-      callback(null, answers.map(answer => answer.data));
+      callback(
+        null,
+        answers.map(answer => answer.data)
+      );
     });
   }
 
@@ -211,7 +214,10 @@ module.exports = class DNSCrypt extends Emitter {
         return callback(error);
       }
 
-      callback(null, answers.map(answer => answer.data));
+      callback(
+        null,
+        answers.map(answer => answer.data)
+      );
     });
   }
 
@@ -227,7 +233,10 @@ module.exports = class DNSCrypt extends Emitter {
         return callback(error);
       }
 
-      callback(null, answers.map(answer => answer.data));
+      callback(
+        null,
+        answers.map(answer => answer.data)
+      );
     });
   }
 
@@ -264,7 +273,10 @@ module.exports = class DNSCrypt extends Emitter {
         return callback(error);
       }
 
-      callback(null, answers.map(answer => answer.data));
+      callback(
+        null,
+        answers.map(answer => answer.data)
+      );
     });
   }
 
@@ -321,7 +333,10 @@ module.exports = class DNSCrypt extends Emitter {
         return callback(error);
       }
 
-      callback(null, answers.map(answer => [answer.data.toString()]));
+      callback(
+        null,
+        answers.map(answer => [answer.data.toString()])
+      );
     });
   }
 
