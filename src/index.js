@@ -76,7 +76,7 @@ function resolve4(hostname, options, callback) {
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
-  dns.resolve4(hostname, { ttl }, callback);
+  dns.resolve4(hostname, { ttl }, cb);
 }
 
 /**
@@ -99,7 +99,7 @@ function resolve6(hostname, options, callback) {
   const cb = createCallback(dns, callback);
 
   dns.once('error', cb);
-  dns.resolve6(hostname, { ttl }, callback);
+  dns.resolve6(hostname, { ttl }, cb);
 }
 
 /**
