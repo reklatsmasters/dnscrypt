@@ -1,20 +1,21 @@
 'use strict';
 
 const dnsstamp = require('dnsstamp').DNSStamp;
+const { fromCallback } = require('universalify');
 const DNSCrypt = require('./dnscrypt');
 const { DEFAULT_RESOLVER } = require('./session');
 
 module.exports = {
-  resolve,
-  resolve4,
-  resolve6,
-  resolveCname,
-  resolveNs,
-  resolvePtr,
-  resolveMx,
-  resolveSoa,
-  resolveSrv,
-  resolveTxt,
+  resolve: fromCallback(resolve),
+  resolve4: fromCallback(resolve4),
+  resolve6: fromCallback(resolve6),
+  resolveCname: fromCallback(resolveCname),
+  resolveNs: fromCallback(resolveNs),
+  resolvePtr: fromCallback(resolvePtr),
+  resolveMx: fromCallback(resolveMx),
+  resolveSoa: fromCallback(resolveSoa),
+  resolveSrv: fromCallback(resolveSrv),
+  resolveTxt: fromCallback(resolveTxt),
   getServers,
 };
 

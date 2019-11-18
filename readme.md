@@ -20,6 +20,9 @@ dnscrypt.resolve('example.com', (err, addresses) => {
   }
 });
 
+// Supports both callback and promise-based styles.
+await dnscrypt.resolve4('example.com');
+
 const resolver = dnscrypt.createResolver({ timeout: 1e3 });
 ```
 
