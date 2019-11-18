@@ -5,7 +5,10 @@
 [![license](https://img.shields.io/npm/l/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 [![downloads](https://img.shields.io/npm/dm/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 
-DNSCrypt - authenticated and encrypted DNS client in nodejs.
+<p align='center'>
+  <img src='dnscrypt.png' width='350' alt='dnscrypt logo' />
+  <p align='center'>DNSCrypt - authenticated and encrypted DNS client for nodejs</p>
+</p>
 
 ## Usage
 
