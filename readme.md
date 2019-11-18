@@ -1,5 +1,5 @@
 # dnscrypt
-[![Build Status](https://travis-ci.com/reklatsmasters/dnscrypt.svg?branch=master)](https://travis-ci.com/reklatsmasters/dnscrypt)
+[![Build Status](https://travis-ci.com/reklatsmasters/dnscrypt.svg?token=u7sXsR3bTvzyLs6vq3CD&branch=master)](https://travis-ci.com/reklatsmasters/dnscrypt)
 [![npm](https://img.shields.io/npm/v/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 [![node](https://img.shields.io/node/v/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 [![license](https://img.shields.io/npm/l/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
