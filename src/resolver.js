@@ -52,6 +52,16 @@ class Resolver {
 
     client.setResolver(sdns);
   }
+
+  /**
+   * Close DNSCrypt session.
+   */
+  close() {
+    /** @type {DNSCrypt} */
+    const client = this[_resolver];
+
+    client.close();
+  }
 }
 
 /**

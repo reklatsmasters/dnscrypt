@@ -50,6 +50,7 @@ module.exports = class DNSCrypt extends Emitter {
    */
   close() {
     this.socket.close();
+    this.protocol.forgetCertificate();
   }
 
   /**

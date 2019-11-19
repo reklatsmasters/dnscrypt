@@ -121,6 +121,10 @@ The following methods from the `dnscrypt` module are available:
 
 Change the address of internal secure DNS server.
 
+* *`resolver.close(): void`*
+
+Close encrypted DNS session.
+
 ## License
 
 MIT, 2019 (c) Dmitriy Tsvettsikh
