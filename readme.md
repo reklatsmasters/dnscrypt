@@ -1,4 +1,5 @@
 # dnscrypt
+[![stability-unstable](https://img.shields.io/badge/stability-unstable-yellow.svg)](https://github.com/emersion/stability-badges#unstable)
 [![Build Status](https://travis-ci.com/reklatsmasters/dnscrypt.svg?token=u7sXsR3bTvzyLs6vq3CD&branch=master)](https://travis-ci.com/reklatsmasters/dnscrypt)
 [![npm](https://img.shields.io/npm/v/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 [![node](https://img.shields.io/node/v/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
