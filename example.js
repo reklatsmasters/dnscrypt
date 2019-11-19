@@ -7,7 +7,7 @@ const dnscrypt = require('.');
 // CAA -> google.com
 // SRV -> _sip._udp.sip.voice.google.com
 
-dnscrypt.resolve4('ya.ru', (error, answer) => {
+dnscrypt.resolve('google.com', 'CAA', (error, answer) => {
   if (error) {
     console.error(error);
   } else {
