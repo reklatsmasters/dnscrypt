@@ -30,6 +30,11 @@ await dnscrypt.resolve4('example.com');
 const resolver = dnscrypt.createResolver({ timeout: 1e3 });
 ```
 
+## How to
+
+* Use global api `dnscrypt.resolve` for single looking up.
+* Use resolver api `dnscrypt.createResolver()` for multiple lookups (_to avoid repeated certificate requests_).
+
 ## API
 
 * *`dnscrypt.resolve(hostname[, rrtype], callback): void`*
