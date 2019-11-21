@@ -18,9 +18,10 @@ const DNSC_CERTIFICATE = 'DNSC_CERTIFICATE'; // wait for certificate
 const DNSC_READY = 'DNSC_READY'; // ready for encrypted query
 
 const transitions = {
-  [DNSC_INIT]: createState(DNSC_REQUEST_CERTIFICATE, DNSC_READY),
-  [DNSC_REQUEST_CERTIFICATE]: createState(DNSC_CERTIFICATE),
-  [DNSC_CERTIFICATE]: createState(DNSC_READY),
+  [DNSC_INIT]: createState(DNSC_REQUEST_CERTIFICATE),
+  [DNSC_REQUEST_CERTIFICATE]: createState(DNSC_INIT, DNSC_CERTIFICATE),
+  [DNSC_CERTIFICATE]: createState(DNSC_INIT, DNSC_READY),
+  [DNSC_READY]: createState(DNSC_INIT),
 };
 
 const SERV_MAGIC_HIGH = 0x7236666e;
