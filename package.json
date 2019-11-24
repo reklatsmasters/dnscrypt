@@ -90,6 +90,9 @@
     "coveragePathIgnorePatterns": [
       "/test/",
       "/example/"
+    ],
+    "collectCoverageFrom": [
+      "**/src/*.js"
     ]
   }
 }
