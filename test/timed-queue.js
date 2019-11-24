@@ -60,7 +60,7 @@ test('should clear', () => {
 });
 
 test('should handle time outs', done => {
-  expect.assertions(5);
+  expect.assertions(4);
 
   const storage = new TimedQueue(1e3);
   const callback = jest.fn();
@@ -73,12 +73,11 @@ test('should handle time outs', done => {
   }, 300);
 
   setTimeout(() => {
-    expect(callback).toBeCalled();
     expect(callback).toBeCalledTimes(1);
     expect(callback).toBeCalledWith(4);
     expect(storage.queue.length).toEqual(1);
     expect(storage.timer).not.toBe(null);
 
     done();
-  }, 1e3);
+  }, 1010);
 });
