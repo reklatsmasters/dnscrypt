@@ -2,8 +2,6 @@
 
 const { TimedQueue } = require('../src/timed-queue');
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 test('should add data', () => {
   const storage = new TimedQueue(1e3);
 
@@ -61,21 +59,26 @@ test('should clear', () => {
   expect(res).toEqual([4, 8]);
 });
 
-test('should handle time outs', async () => {
+test('should handle time outs', done => {
+  expect.assertions(5);
+
   const storage = new TimedQueue(1e3);
   const callback = jest.fn();
 
   storage.on('timeout', callback);
-
   storage.push(4);
-  await delay(300);
 
-  storage.push(8);
-  await delay(700);
+  setTimeout(() => {
+    storage.push(8);
+  }, 300);
 
-  expect(callback).toBeCalled();
-  expect(callback).toBeCalledTimes(1);
-  expect(callback).toBeCalledWith(4);
-  expect(storage.queue.length).toEqual(1);
-  expect(storage.timer).not.toBe(null);
+  setTimeout(() => {
+    expect(callback).toBeCalled();
+    expect(callback).toBeCalledTimes(1);
+    expect(callback).toBeCalledWith(4);
+    expect(storage.queue.length).toEqual(1);
+    expect(storage.timer).not.toBe(null);
+
+    done();
+  }, 1e3);
 });
