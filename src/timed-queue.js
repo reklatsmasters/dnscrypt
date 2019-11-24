@@ -68,15 +68,19 @@ class TimedQueue extends Emitter {
   }
 
   /**
-   * Remote pending queries and timer.
+   * Remove pending queries and timer.
+   * @returns {Object[]}
    */
   clear() {
+    const queue = this.queue.slice();
     this.queue.length = 0;
 
     if (this.timer !== null) {
       this.timer.destroy();
       this.timer = null;
     }
+
+    return queue.map(value => value.data);
   }
 
   /**
@@ -91,11 +95,6 @@ class TimedQueue extends Emitter {
 
     const removed = [];
     const now = Date.now();
-
-    if (this.queue.length === 0 && this.timer !== null) {
-      this.timer.destroy();
-      this.timer = null;
-    }
 
     this.queue.forEach(item => {
       if (item.timeout <= now) {

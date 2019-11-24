@@ -5,6 +5,7 @@
 [![node](https://img.shields.io/node/v/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 [![license](https://img.shields.io/npm/l/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
 [![downloads](https://img.shields.io/npm/dm/dnscrypt.svg)](https://npmjs.org/package/dnscrypt)
+[![Coverage Status](https://coveralls.io/repos/github/reklatsmasters/dnscrypt/badge.svg?branch=master)](https://coveralls.io/github/reklatsmasters/dnscrypt?branch=master)
 
 <p align='center'>
   <img src='dnscrypt.png' width='350' alt='dnscrypt logo' />

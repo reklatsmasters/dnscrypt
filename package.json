@@ -4,7 +4,8 @@
   "description": "DNSCrypt - authenticated and encrypted DNS client",
   "main": "src/index.js",
   "scripts": {
-    "test": "npx eslint src",
+    "test": "npx eslint src && npx jest",
+    "test-ci": "npx eslint src && npx jest --coverage",
     "update-resolvers": "wget -O public-resolvers.json https://download.dnscrypt.info/dnscrypt-resolvers/json/public-resolvers.json"
   },
   "repository": {
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@nodertc/eslint-config": "^0.3.0",
+    "@types/jest": "^24.0.23",
     "@types/node": "^12.7.4",
     "eslint": "^6.6.0",
     "jest": "^24.9.0",
@@ -77,6 +79,17 @@
           "unicorn/no-process-exit": "off"
         }
       }
+    ]
+  },
+  "jest": {
+    "modulePaths": [
+      "<rootDir>"
+    ],
+    "testRegex": "test/(.*)\\.js$",
+    "coverageDirectory": "<rootDir>/coverage",
+    "coveragePathIgnorePatterns": [
+      "/test/",
+      "/example/"
     ]
   }
 }
