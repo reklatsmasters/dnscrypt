@@ -2,7 +2,9 @@
 
 const packet = require('dns-packet');
 const dgram = require('dgram');
-const { parse } = require('../src/certificate');
+const nacl = require('tweetnacl');
+const { BinaryStream } = require('binary-data');
+const { parse, validate } = require('../src/certificate');
 
 /**
  * Get certificate.
@@ -71,4 +73,108 @@ test('should not parse', () => {
 
   expect(parse(cert)).toBeNull();
   expect(parse([cert])).toBeNull();
+});
+
+describe('validate certificate', () => {
+  test('check magic', () => {
+    const certificate = {
+      certMagic: Buffer.from('DNSC').readUInt32BE() + 1,
+    };
+
+    expect(validate(certificate)).toBe(false);
+  });
+
+  test('check protocol', () => {
+    const certificate = {
+      certMagic: Buffer.from('DNSC').readUInt32BE(),
+      minProtocol: 1,
+    };
+
+    expect(validate(certificate)).toBe(false);
+  });
+
+  test('check es version', () => {
+    const certificate = {
+      certMagic: Buffer.from('DNSC').readUInt32BE(),
+      minProtocol: 0,
+      esVersion: 0,
+    };
+
+    expect(validate(certificate)).toBe(false);
+  });
+
+  test('check pk', () => {
+    const { publicKey } = nacl.sign.keyPair();
+    const pubkey = Buffer.from(publicKey.buffer, publicKey.byteOffset, publicKey.byteLength);
+
+    const certificate = {
+      certMagic: Buffer.from('DNSC').readUInt32BE(),
+      minProtocol: 0,
+      esVersion: 1,
+      signature: null,
+      resolverPk: pubkey,
+      clientMagic: Buffer.allocUnsafe(8),
+      serial: Math.trunc(Math.random() * 1e3),
+      ts: {
+        start: Math.trunc((Date.now() - 60e3) / 1e3),
+        end: Math.trunc((Date.now() + 60e3) / 1e3),
+      },
+    };
+
+    expect(validate(certificate)).toBe(false);
+  });
+
+  test('check ts', () => {
+    const { publicKey } = nacl.sign.keyPair();
+    const pubkey = Buffer.from(publicKey.buffer, publicKey.byteOffset, publicKey.byteLength);
+
+    const certificate = {
+      certMagic: Buffer.from('DNSC').readUInt32BE(),
+      minProtocol: 0,
+      esVersion: 1,
+      signature: null,
+      resolverPk: pubkey,
+      clientMagic: pubkey.slice(0, 8),
+      serial: Math.trunc(Math.random() * 1e3),
+      ts: {
+        start: Math.trunc((Date.now() + 60e3) / 1e3),
+        end: Math.trunc((Date.now() - 60e3) / 1e3),
+      },
+    };
+
+    expect(validate(certificate)).toBe(false);
+  });
+
+  test('should be valid', () => {
+    const { publicKey, secretKey } = nacl.sign.keyPair();
+    const pubkey = Buffer.from(publicKey.buffer, publicKey.byteOffset, publicKey.byteLength);
+    const signature = new BinaryStream();
+
+    const certificate = {
+      certMagic: Buffer.from('DNSC').readUInt32BE(),
+      minProtocol: 0,
+      esVersion: 1,
+      signature: null,
+      resolverPk: pubkey,
+      clientMagic: pubkey.slice(0, 8),
+      serial: Math.trunc(Math.random() * 1e3),
+      ts: {
+        start: Math.trunc((Date.now() - 60e3) / 1e3),
+        end: Math.trunc((Date.now() + 60e3) / 1e3),
+      },
+    };
+
+    signature.append(certificate.resolverPk);
+    signature.append(certificate.clientMagic);
+    signature.writeUInt32BE(certificate.serial);
+    signature.writeUInt32BE(certificate.ts.start);
+    signature.writeUInt32BE(certificate.ts.end);
+
+    certificate.signature = nacl.sign.detached(signature.slice(), secretKey);
+
+    expect(publicKey.byteLength).toBe(32);
+    expect(certificate.signature.byteLength).toBe(64);
+
+    expect(validate(certificate, signature.slice(), pubkey)).toBe(true);
+  });
 });
