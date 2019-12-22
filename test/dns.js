@@ -1,9 +1,15 @@
 'use strict';
 
 jest.mock('../src/dnscrypt');
-const DNSCrypt = require('../src/dnscrypt');
+jest.mock('dnsstamp', () => ({
+  DNSStamp: {
+    parse: x => x,
+  },
+}));
 
+const DNSCrypt = require('../src/dnscrypt');
 const dnscrypt = require('..');
+const { DEFAULT_RESOLVER } = require('../src/session');
 
 describe('should resolve', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -212,4 +218,9 @@ describe('should resolve', () => {
       expect(addr).toBe(response);
     });
   });
+});
+
+test('getServers', () => {
+  const response = dnscrypt.getServers();
+  expect(response).toStrictEqual([DEFAULT_RESOLVER]);
 });
