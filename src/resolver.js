@@ -1,5 +1,6 @@
 'use strict';
 
+const dnsstamp = require('dnsstamp').DNSStamp;
 const DNSCrypt = require('./dnscrypt');
 const { DEFAULT_RESOLVER, DEFAULT_TIMEOUT } = require('./session');
 const dns = require('./dns');
@@ -39,7 +40,7 @@ class Resolver {
     /** @type {DNSCrypt} */
     const client = this[_resolver];
 
-    return dns.getServers(client.session.sdns);
+    return [dnsstamp.parse(client.session.sdns)];
   }
 
   /**
@@ -72,7 +73,7 @@ class Resolver {
  * @param {boolean} [options.unref] Call `unref` on internal socket.
  * @returns {Resolver}
  */
-function createResolver(options) {
+function createResolver(options = {}) {
   let unref = false;
   let sdns = DEFAULT_RESOLVER;
   let timeout = DEFAULT_TIMEOUT;
