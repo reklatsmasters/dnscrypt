@@ -81,3 +81,9 @@ test('should handle time outs', done => {
     done();
   }, 1010);
 });
+
+test('test predicate', () => {
+  const storage = new TimedQueue(1e3);
+
+  expect(() => storage.drop(null)).toThrowError('Argument "predicate" should be a function');
+});

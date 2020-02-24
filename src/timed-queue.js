@@ -53,18 +53,24 @@ class TimedQueue extends Emitter {
    * @returns {*}
    */
   drop(predicate) {
+    if (typeof predicate !== 'function') {
+      throw new TypeError('Argument "predicate" should be a function');
+    }
+
     const item = this.queue.find((value, i) => predicate(value.data, i));
 
-    if (item !== undefined) {
-      uset.remove(this.queue, item);
-
-      if (this.queue.length === 0 && this.timer !== null) {
-        this.timer.destroy();
-        this.timer = null;
-      }
-
-      return item.data;
+    if (item === undefined) {
+      return;
     }
+
+    uset.remove(this.queue, item);
+
+    if (this.queue.length === 0 && this.timer !== null) {
+      this.timer.destroy();
+      this.timer = null;
+    }
+
+    return item.data;
   }
 
   /**
