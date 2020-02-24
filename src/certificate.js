@@ -92,7 +92,6 @@ function parse(encodedCertificate) {
   }
 
   try {
-    // const signed = bstream.slice(4 + 2 + 2 + 64);
     /** @type {Certificate} */
     const certificate = decode(encodedCertificate, EncodedCertificate);
 
