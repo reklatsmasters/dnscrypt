@@ -1,7 +1,6 @@
 'use strict';
 
 const Emitter = require('events');
-const timeout = require('timeout-refresh');
 const uset = require('unordered-set');
 
 /**
@@ -18,6 +17,8 @@ class TimedQueue extends Emitter {
     this.ms = time;
     this.timer = null;
     this.queue = [];
+
+    this._timeout = this.timeout.bind(this);
   }
 
   /**
@@ -25,7 +26,7 @@ class TimedQueue extends Emitter {
    */
   reset() {
     if (this.timer === null) {
-      this.timer = timeout(this.ms, this.timeout, this);
+      this.timer = setTimeout(this._timeout, this.ms);
     } else {
       this.timer.refresh();
     }
@@ -66,7 +67,7 @@ class TimedQueue extends Emitter {
     uset.remove(this.queue, item);
 
     if (this.queue.length === 0 && this.timer !== null) {
-      this.timer.destroy();
+      clearTimeout(this.timer);
       this.timer = null;
     }
 
@@ -82,7 +83,7 @@ class TimedQueue extends Emitter {
     this.queue.length = 0;
 
     if (this.timer !== null) {
-      this.timer.destroy();
+      clearTimeout(this.timer);
       this.timer = null;
     }
 
@@ -94,7 +95,7 @@ class TimedQueue extends Emitter {
    */
   timeout() {
     if (this.queue.length === 0 && this.timer !== null) {
-      this.timer.destroy();
+      clearTimeout(this.timer);
       this.timer = null;
       return;
     }
