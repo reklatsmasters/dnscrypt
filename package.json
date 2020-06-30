@@ -34,7 +34,7 @@
     "random-int": "^2.0.0",
     "timeout-refresh": "^1.0.1",
     "tweetnacl": "^1.0.3",
-    "universalify": "^0.1.2",
+    "universalify": "^1.0.0",
     "unordered-set": "^2.0.1"
   },
   "devDependencies": {
