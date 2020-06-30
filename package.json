@@ -39,14 +39,14 @@
   },
   "devDependencies": {
     "@nodertc/eslint-config": "^0.3.0",
-    "@types/jest": "^24.0.23",
-    "@types/node": "^12.7.4",
+    "@types/jest": "^26.0.3",
+    "@types/node": "^14.0.14",
     "eslint": "^6.6.0",
-    "jest": "^24.9.0",
+    "jest": "^26.1.0",
     "prettier": "^1.18.2"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=10.2"
   },
   "eslintConfig": {
     "extends": "@nodertc",
@@ -93,6 +93,7 @@
     ],
     "collectCoverageFrom": [
       "**/src/*.js"
-    ]
+    ],
+    "testEnvironment": "node"
   }
 }
