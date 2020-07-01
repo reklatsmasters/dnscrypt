@@ -10,6 +10,7 @@ const debug = require('debug')('dnscrypt');
 module.exports = {
   validate,
   parse,
+  validateCertificate,
 };
 
 const CERT_MAGIC = 0x444e5343;
@@ -100,4 +101,79 @@ function parse(encodedCertificate) {
     debug('invalid certificate', error);
     return null;
   }
+}
+
+/**
+ * Handle remote certificate.
+ * @param {Object} response DNS response.
+ * @param {Object} resolver DNSCrypt server config.
+ * @returns {Certificate}
+ */
+function validateCertificate(response, resolver) {
+  if (response.type !== 'response') {
+    throw new Error('Invalid DNS response');
+  }
+
+  if (response.rcode !== 'NOERROR') {
+    throw new Error('Invalid DNS response');
+  }
+
+  if (response.answers.length < response.questions.length) {
+    throw new Error('Invalid DNS response');
+  }
+
+  const record = response.answers.find(
+    answer => answer.type === 'TXT' && answer.name === resolver.providerName
+  );
+
+  if (!record) {
+    throw new Error('Invalid DNS response');
+  }
+
+  /** @type {Buffer[]} */
+  const encodedCertificates = Array.isArray(record.data) ? record.data : [record.data];
+
+  if (encodedCertificates.length === 0) {
+    throw new Error('Invalid DNS response');
+  }
+
+  // Resolver public key.
+  const publicKey = Buffer.from(resolver.pk, 'hex');
+
+  const reducer = (previous, { certificate }) => {
+    if (!previous) {
+      return certificate;
+    }
+
+    return certificate.serial > previous.serial ? certificate : previous;
+  };
+
+  const mapper = bytes => {
+    const certificate = parse(bytes);
+
+    if (certificate === null) {
+      return null;
+    }
+
+    const signed = bytes.slice(4 + 2 + 2 + 64);
+
+    return {
+      certificate,
+      signed,
+    };
+  };
+
+  const remoteCertificate = encodedCertificates
+    .map(bytes => mapper(bytes))
+    .filter(Boolean)
+    .filter(({ certificate, signed }) => validate(certificate, signed, publicKey))
+    .reduce(reducer, null);
+
+  if (remoteCertificate === null) {
+    throw new Error('No valid certificates');
+  }
+
+  debug('got certificate', remoteCertificate);
+
+  return remoteCertificate;
 }

@@ -29,6 +29,8 @@ class Session extends Emitter {
     this.certificate = null; // Resolver certificate.
     this.lookupQueue = []; // Queue to wait for certificate before starting looking up.
     this.queue = new TimedQueue(queryTimeout); // Queue of pending queries.
+    this.certificateTimeout = queryTimeout;
+    this.queryTimeout = queryTimeout;
   }
 
   /**

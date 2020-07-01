@@ -10,7 +10,6 @@ const isLegalPort = port => typeof port === 'number' && port > 0 && port < 0xfff
  * @typedef {Object} UDPSocketOptions
  * @property {number} port Target port.
  * @property {string} address Target IP address.
- * @property {string} [bindAddress] Source IP address.
  * @property {number} [bindPort] Source port.
  */
 /**
@@ -24,7 +23,7 @@ module.exports = class UDPSocket extends nanoresource {
   constructor(opts = {}) {
     super();
 
-    const { port, address, bindAddress, bindPort } = opts;
+    const { port, address, bindPort } = opts;
 
     if (!isIP(address)) {
       throw new Error('Invalid ip address');
@@ -38,8 +37,6 @@ module.exports = class UDPSocket extends nanoresource {
     this.address = address;
 
     this.bindPort = isLegalPort(bindPort) ? bindPort : 0;
-    this.bindAddress = isIP(bindAddress) ? bindAddress : 'localhost';
-
     this.socket = null;
   }
 
@@ -80,7 +77,7 @@ module.exports = class UDPSocket extends nanoresource {
     this.socket.once('connect', connectHandler);
 
     try {
-      this.socket.bind(this.bindPort, this.bindAddress);
+      this.socket.bind(this.bindPort);
     } catch (error) {
       errorHandler(error);
     }
