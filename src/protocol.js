@@ -7,7 +7,7 @@ const debug = require('debug')('dnscrypt');
 const nacl = require('tweetnacl');
 const { createMachine, createState } = require('next-state');
 const cert = require('./certificate');
-const dnssec = require('./dnssec');
+const dnssec = require('./secure');
 
 // INIT -> REQUEST_CERTIFICATE -> CERTIFICATE -> READY
 //  ^---------------------------------------------|
