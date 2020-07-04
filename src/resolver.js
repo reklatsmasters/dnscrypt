@@ -2,34 +2,23 @@
 
 const dnsstamp = require('dnsstamp').DNSStamp;
 const DNSCrypt = require('./dnscrypt');
-const { DEFAULT_RESOLVER, DEFAULT_TIMEOUT } = require('./session');
-const dns = require('./dns');
-
-const _resolver = Symbol('resolver');
-
-module.exports = {
-  createResolver,
-};
+const { checkHostname, checkCallback } = require('./utils');
 
 /**
- * An independent resolver for DNS requests.
+ * A public DNS resolver interface.
  */
 class Resolver {
+  /** @type {DNSCrypt} */
+  #dnscrypt;
+
   /**
    * @class {Resolver}
    * @param {Object} options
    * @param {string} [options.sdns] Secure DNS resolver config.
    * @param {number} [options.timeout] DNS query timeout.
-   * @param {boolean} [options.unref] Call `unref` on internal socket.
    */
-  constructor(options) {
-    const dnscrypt = new DNSCrypt(options);
-
-    if (options.unref) {
-      dnscrypt.unref();
-    }
-
-    this[_resolver] = dnscrypt;
+  constructor(options = {}) {
+    this.#dnscrypt = new DNSCrypt(options);
   }
 
   /**
@@ -37,31 +26,163 @@ class Resolver {
    * @returns {DNSStamp[]}
    */
   getServers() {
-    /** @type {DNSCrypt} */
-    const client = this[_resolver];
-
-    return [dnsstamp.parse(client.session.sdns)];
-  }
-
-  /**
-   * Sets secure config of server to be used when performing DNS resolution.
-   * @param {string} sdns Secure DNS resolver config.
-   */
-  setServers(sdns) {
-    /** @type {DNSCrypt} */
-    const client = this[_resolver];
-
-    client.setResolver(sdns);
+    return [dnsstamp.parse(this.#dnscrypt.session.sdns)];
   }
 
   /**
    * Close DNSCrypt session.
    */
   close() {
-    /** @type {DNSCrypt} */
-    const client = this[_resolver];
+    this.#dnscrypt.close();
+  }
 
-    client.close();
+  /**
+   * Uses the DNS protocol to resolve a hostname into an array of the resource records..
+   * @param {string} hostname Hostname to resolve.
+   * @param {string} [rrtype] Resource record type.
+   * @param {Function} callback
+   */
+  resolve(hostname, rrtype, callback) {
+    if (typeof rrtype === 'function') {
+      callback = rrtype; // eslint-disable-line no-param-reassign
+      rrtype = 'A'; // eslint-disable-line no-param-reassign
+    }
+
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    if (typeof rrtype !== 'string') {
+      throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
+    }
+
+    this.#dnscrypt.resolve(hostname, rrtype.toUpperCase(), callback);
+  }
+
+  /**
+   * Resolve IPv4 address.
+   * @param {string} hostname
+   * @param {Object} [options]
+   * @param {Function} callback
+   */
+  resolve4(hostname, options, callback) {
+    if (typeof options === 'function') {
+      callback = options; // eslint-disable-line no-param-reassign
+      options = { ttl: false }; // eslint-disable-line no-param-reassign
+    }
+
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolve4(hostname, { ttl: !!options.ttl }, callback);
+  }
+
+  /**
+   * Resolve IPv6 address.
+   * @param {string} hostname
+   * @param {Object} [options]
+   * @param {Function} callback
+   */
+  resolve6(hostname, options, callback) {
+    if (typeof options === 'function') {
+      callback = options; // eslint-disable-line no-param-reassign
+      options = { ttl: false }; // eslint-disable-line no-param-reassign
+    }
+
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolve6(hostname, { ttl: !!options.ttl }, callback);
+  }
+
+  /**
+   * Resolve CNAME record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolveCname(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolveCname(hostname, callback);
+  }
+
+  /**
+   * Resolve NS record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolveNs(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolveNs(hostname, callback);
+  }
+
+  /**
+   * Resolve PTR record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolvePtr(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolvePtr(hostname, callback);
+  }
+
+  /**
+   * Resolve MX record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolveMx(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolveMx(hostname, callback);
+  }
+
+  /**
+   * Resolve SOA record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolveSoa(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolveSoa(hostname, callback);
+  }
+
+  /**
+   * Resolve SRV record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolveSrv(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolveSrv(hostname, callback);
+  }
+
+  /**
+   * Resolve TXT record.
+   * @param {string} hostname
+   * @param {Function} callback
+   * @returns {void}
+   */
+  resolveTxt(hostname, callback) {
+    checkHostname(hostname);
+    checkCallback(callback);
+
+    this.#dnscrypt.resolveTxt(hostname, callback);
   }
 }
 
@@ -70,80 +191,13 @@ class Resolver {
  * @param {Object} options
  * @param {string} [options.sdns] Secure DNS resolver config.
  * @param {number} [options.timeout] DNS query timeout.
- * @param {boolean} [options.unref] Call `unref` on internal socket.
  * @returns {Resolver}
  */
 function createResolver(options = {}) {
-  let unref = false;
-  let sdns = DEFAULT_RESOLVER;
-  let timeout = DEFAULT_TIMEOUT;
-
-  if (typeof options.unref === 'boolean') {
-    unref = options.unref; // eslint-disable-line prefer-destructuring
-  }
-
-  if (typeof options.sdns === 'string') {
-    sdns = options.sdns; // eslint-disable-line prefer-destructuring
-  }
-
-  if (typeof options.timeout === 'number' && options.timeout > 0) {
-    timeout = options.timeout; // eslint-disable-line prefer-destructuring
-  }
-
-  const resolver = new Resolver({ unref, sdns, timeout });
-
-  const props = {
-    resolve: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolve.bind(resolver[_resolver]),
-    },
-    resolve4: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolve4.bind(resolver[_resolver]),
-    },
-    resolve6: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolve6.bind(resolver[_resolver]),
-    },
-    resolveCname: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolveCname.bind(resolver[_resolver]),
-    },
-    resolveNs: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolveNs.bind(resolver[_resolver]),
-    },
-    resolvePtr: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolvePtr.bind(resolver[_resolver]),
-    },
-    resolveMx: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolveMx.bind(resolver[_resolver]),
-    },
-    resolveSoa: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolveSoa.bind(resolver[_resolver]),
-    },
-    resolveSrv: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolveSrv.bind(resolver[_resolver]),
-    },
-    resolveTxt: {
-      configurable: false,
-      enumerable: true,
-      value: dns.resolveTxt.bind(resolver[_resolver]),
-    },
-  };
-
-  return Object.defineProperties(resolver, props);
+  return new Resolver(options);
 }
+
+module.exports = {
+  createResolver,
+  Resolver,
+};

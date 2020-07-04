@@ -4,6 +4,8 @@ module.exports = {
   padLength,
   padRight,
   unpadRight,
+  checkHostname,
+  checkCallback,
 };
 
 /**
@@ -55,4 +57,24 @@ function padRight(buf, mul, min) {
 function unpadRight(buf) {
   const i = buf.lastIndexOf(0x80);
   return i === -1 ? buf : buf.slice(0, i);
+}
+
+/**
+ * Check hostname.
+ * @param {string} hostname
+ */
+function checkHostname(hostname) {
+  if (typeof hostname !== 'string') {
+    throw new TypeError('Argument "hostname" should be a string');
+  }
+}
+
+/**
+ * Check callback type.
+ * @param {Function} callback
+ */
+function checkCallback(callback) {
+  if (typeof callback !== 'function') {
+    throw new TypeError('Argument "callback" should be a function');
+  }
 }
