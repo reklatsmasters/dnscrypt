@@ -17,20 +17,14 @@ const DEFAULT_TIMEOUT = 2e3;
 class Session extends Emitter {
   /**
    * @class {Session}
-   * @param {number} queryTimeout
    */
-  constructor(queryTimeout = DEFAULT_TIMEOUT) {
+  constructor() {
     super();
     this.setResolver(DEFAULT_RESOLVER);
 
-    this.lastDnsId = 0;
-    this.connected = false; // Check if socket is support connect / disconnect API.
-    this.certificatePacket = null; // Parsed response with server certificate.
     this.certificate = null; // Resolver certificate.
-    this.lookupQueue = []; // Queue to wait for certificate before starting looking up.
-    this.queue = new TimedQueue(queryTimeout); // Queue of pending queries.
-    this.certificateTimeout = queryTimeout;
-    this.queryTimeout = queryTimeout;
+    this.certificateTimeout = DEFAULT_TIMEOUT;
+    this.queryTimeout = DEFAULT_TIMEOUT;
   }
 
   /**

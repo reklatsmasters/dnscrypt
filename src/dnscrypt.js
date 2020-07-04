@@ -1,11 +1,9 @@
 'use strict';
 
-const dgram = require('dgram');
-const { isIPv4 } = require('net');
 const Emitter = require('events');
 const rrtypes = require('dns-packet/types');
 const { Session } = require('./session');
-const Protocol = require('./protocol');
+const UDPClient = require('./transport/udp-client');
 
 const upper = s => s.toUpperCase();
 const lower = s => s.toLowerCase();
@@ -25,78 +23,23 @@ module.exports = class DNSCrypt extends Emitter {
 
     this.session = new Session();
 
+    if (typeof options.timeout === 'number' && options.timeout > 0) {
+      this.session.queryTimeout = options.timeout;
+    }
+
     if (typeof options.sdns === 'string' && options.sdns.startsWith('sdns://')) {
       this.session.setResolver(options.sdns);
     }
 
-    const socketType = isIPv4(this.session.serverAddress) ? 'udp4' : 'udp6';
-    this.socket = dgram.createSocket(socketType);
-
-    this.socket.once('close', () => {
-      this.emit('close');
-    });
-
-    this.session.on('error', error => this.emit('error', error));
-
-    this.session.queue.on('timeout', query =>
-      process.nextTick(query.callback, new Error('Timed out'))
-    );
-
-    this.protocol = new Protocol(this.session, this.socket);
+    this.client = new UDPClient({ session: this.session });
   }
 
   /**
    * Close the client.
+   * @param {Function} [callback]
    */
-  close() {
-    this.socket.close();
-    this.protocol.forgetCertificate();
-  }
-
-  /**
-   * Exclude internal dgram socket from the reference counting.
-   * @returns {DNSCrypt}
-   */
-  unref() {
-    this.socket.unref();
-    return this;
-  }
-
-  /**
-   * Add internal dgram socket to the reference counting.
-   * @returns {DNSCrypt}
-   */
-  ref() {
-    this.socket.ref();
-    return this;
-  }
-
-  /**
-   * Sets secure config of server to be used when performing DNS resolution.
-   * @param {string} sdns Secure DNS resolver config.
-   */
-  setResolver(sdns) {
-    if (typeof sdns === 'string' && sdns.startsWith('sdns://')) {
-      this.session.setResolver(sdns);
-      this.protocol.forgetCertificate();
-    } else {
-      throw new TypeError('Invalid argument "sdns"');
-    }
-  }
-
-  /**
-   * Start looking up.
-   * @param {string} hostname Hostname to resolve.
-   * @param {string} rrtype Resource record type.
-   * @param {Function} callback
-   */
-  lookup(hostname, rrtype, callback) {
-    if (this.session.certificate === null) {
-      this.session.lookupQueue.push({ hostname, rrtype, callback });
-      this.protocol.lookupCertificate();
-    } else {
-      this.protocol.lookup(hostname, rrtype, callback);
-    }
+  close(callback = noop) {
+    this.client.close(callback);
   }
 
   /**
@@ -106,7 +49,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @param {Function} callback
    * @returns {void}
    */
-  resolveGeneric(hostname, rrtype, callback) {
+  lookup(hostname, rrtype, callback) {
     const host = lower(hostname);
     const type = upper(rrtype);
 
@@ -114,7 +57,7 @@ module.exports = class DNSCrypt extends Emitter {
       throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
     }
 
-    this.lookup(host, type, (error, response) => {
+    this.client.lookup(host, type, (error, response) => {
       if (error) {
         return callback(error);
       }
@@ -147,7 +90,14 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveAddress(hostname, rrtype, options, callback) {
-    this.resolveGeneric(hostname, rrtype, (error, answers) => {
+    if (typeof options === 'function') {
+      // eslint-disable-next-line no-param-reassign
+      callback = options;
+      // eslint-disable-next-line no-param-reassign
+      options = { ttl: false };
+    }
+
+    this.lookup(hostname, rrtype, (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -191,7 +141,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveCname(hostname, callback) {
-    this.resolveGeneric(hostname, 'CNAME', (error, answers) => {
+    this.lookup(hostname, 'CNAME', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -210,7 +160,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveNs(hostname, callback) {
-    this.resolveGeneric(hostname, 'NS', (error, answers) => {
+    this.lookup(hostname, 'NS', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -229,7 +179,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolvePtr(hostname, callback) {
-    this.resolveGeneric(hostname, 'PTR', (error, answers) => {
+    this.lookup(hostname, 'PTR', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -248,7 +198,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveMx(hostname, callback) {
-    this.resolveGeneric(hostname, 'MX', (error, answers) => {
+    this.lookup(hostname, 'MX', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -269,7 +219,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveNaptr(hostname, callback) {
-    this.resolveGeneric(hostname, 'NAPTR', (error, answers) => {
+    this.lookup(hostname, 'NAPTR', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -288,7 +238,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveSoa(hostname, callback) {
-    this.resolveGeneric(hostname, 'SOA', (error, answers) => {
+    this.lookup(hostname, 'SOA', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -311,7 +261,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveSrv(hostname, callback) {
-    this.resolveGeneric(hostname, 'SRV', (error, answers) => {
+    this.lookup(hostname, 'SRV', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -329,7 +279,7 @@ module.exports = class DNSCrypt extends Emitter {
    * @returns {void}
    */
   resolveTxt(hostname, callback) {
-    this.resolveGeneric(hostname, 'TXT', (error, answers) => {
+    this.lookup(hostname, 'TXT', (error, answers) => {
       if (error) {
         return callback(error);
       }
@@ -352,31 +302,31 @@ module.exports = class DNSCrypt extends Emitter {
     switch (rrtype) {
       case 'A':
         this.resolve4(hostname, callback);
-        break;
+        return;
       case 'AAAA':
         this.resolve6(hostname, callback);
-        break;
+        return;
       case 'CNAME':
         this.resolveCname(hostname, callback);
-        break;
+        return;
       case 'MX':
         this.resolveMx(hostname, callback);
-        break;
+        return;
       case 'NS':
         this.resolveNs(hostname, callback);
-        break;
+        return;
       case 'PTR':
         this.resolvePtr(hostname, callback);
-        break;
+        return;
       case 'SOA':
         this.resolveSoa(hostname, callback);
-        break;
+        return;
       case 'SRV':
         this.resolveSrv(hostname, callback);
-        break;
+        return;
       case 'TXT':
         this.resolveTxt(hostname, callback);
-        break;
+        return;
       default:
         break;
     }
@@ -385,6 +335,11 @@ module.exports = class DNSCrypt extends Emitter {
       throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
     }
 
-    this.resolveGeneric(hostname, rrtype, callback);
+    this.lookup(hostname, rrtype, callback);
   }
 };
+
+/**
+ * @private
+ */
+function noop() {}
