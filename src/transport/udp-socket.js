@@ -4,7 +4,7 @@ const dgram = require('dgram');
 const { isIP, isIPv4 } = require('net');
 const nanoresource = require('nanoresource/emitter');
 
-const isLegalPort = port => typeof port === 'number' && port > 0 && port < 0xffff;
+const isLegalPort = (port) => typeof port === 'number' && port > 0 && port < 0xffff;
 
 /**
  * @typedef {Object} UDPSocketOptions
@@ -52,8 +52,8 @@ module.exports = class UDPSocket extends nanoresource {
 
     const connectHandler = () => {
       this.socket.removeListener('error', errorHandler);
-      this.socket.on('error', err => this.emit('error', err));
-      this.socket.on('message', message => this.emit('data', message));
+      this.socket.on('error', (err) => this.emit('error', err));
+      this.socket.on('message', (message) => this.emit('data', message));
 
       callback(null);
     };
@@ -98,7 +98,7 @@ module.exports = class UDPSocket extends nanoresource {
    * @param {Function} callback
    */
   write(data, callback) {
-    this.open(error => {
+    this.open((error) => {
       if (error) {
         return callback(error);
       }

@@ -5,8 +5,8 @@ const rrtypes = require('dns-packet/types');
 const { Session } = require('./session');
 const UDPClient = require('./transport/udp-client');
 
-const upper = s => s.toUpperCase();
-const lower = s => s.toLowerCase();
+const upper = (s) => s.toUpperCase();
+const lower = (s) => s.toLowerCase();
 
 /**
  * DNSCrypt client.
@@ -73,7 +73,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       /** @type {Object[]} */
       const answers = response.answers.filter(
-        answer =>
+        (answer) =>
           upper(answer.type) === type && lower(answer.name) === host && upper(answer.class) === 'IN'
       );
 
@@ -105,9 +105,9 @@ module.exports = class DNSCrypt extends Emitter {
       let addresses;
 
       if (options.ttl) {
-        addresses = answers.map(answer => ({ address: answer.data, ttl: answer.ttl }));
+        addresses = answers.map((answer) => ({ address: answer.data, ttl: answer.ttl }));
       } else {
-        addresses = answers.map(answer => answer.data);
+        addresses = answers.map((answer) => answer.data);
       }
 
       callback(null, addresses);
@@ -148,7 +148,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       callback(
         null,
-        answers.map(answer => answer.data)
+        answers.map((answer) => answer.data)
       );
     });
   }
@@ -167,7 +167,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       callback(
         null,
-        answers.map(answer => answer.data)
+        answers.map((answer) => answer.data)
       );
     });
   }
@@ -186,7 +186,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       callback(
         null,
-        answers.map(answer => answer.data)
+        answers.map((answer) => answer.data)
       );
     });
   }
@@ -208,7 +208,7 @@ module.exports = class DNSCrypt extends Emitter {
         exchange,
       });
 
-      callback(null, answers.map(answer => answer.data).map(mapper));
+      callback(null, answers.map((answer) => answer.data).map(mapper));
     });
   }
 
@@ -226,7 +226,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       callback(
         null,
-        answers.map(answer => answer.data)
+        answers.map((answer) => answer.data)
       );
     });
   }
@@ -250,7 +250,7 @@ module.exports = class DNSCrypt extends Emitter {
         minttl: minimum,
       });
 
-      callback(null, answers.map(answer => answer.data).map(mapper));
+      callback(null, answers.map((answer) => answer.data).map(mapper));
     });
   }
 
@@ -268,7 +268,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       const mapper = ({ target, ...srv }) => ({ name: target, ...srv });
 
-      callback(null, answers.map(answer => answer.data).map(mapper));
+      callback(null, answers.map((answer) => answer.data).map(mapper));
     });
   }
 
@@ -286,7 +286,7 @@ module.exports = class DNSCrypt extends Emitter {
 
       callback(
         null,
-        answers.map(answer => [answer.data.toString()])
+        answers.map((answer) => [answer.data.toString()])
       );
     });
   }

@@ -123,7 +123,7 @@ function validateCertificate(response, resolver) {
   }
 
   const record = response.answers.find(
-    answer => answer.type === 'TXT' && answer.name === resolver.providerName
+    (answer) => answer.type === 'TXT' && answer.name === resolver.providerName
   );
 
   if (!record) {
@@ -148,7 +148,7 @@ function validateCertificate(response, resolver) {
     return certificate.serial > previous.serial ? certificate : previous;
   };
 
-  const mapper = bytes => {
+  const mapper = (bytes) => {
     const certificate = parse(bytes);
 
     if (certificate === null) {
@@ -164,7 +164,7 @@ function validateCertificate(response, resolver) {
   };
 
   const remoteCertificate = encodedCertificates
-    .map(bytes => mapper(bytes))
+    .map((bytes) => mapper(bytes))
     .filter(Boolean)
     .filter(({ certificate, signed }) => validate(certificate, signed, publicKey))
     .reduce(reducer, null);

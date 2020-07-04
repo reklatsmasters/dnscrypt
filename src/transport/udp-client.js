@@ -104,7 +104,7 @@ module.exports = class UDPClient extends nanoresource {
       this.inactive(callback, new Error('ETIMEDOUT'));
     }, this.session.queryTimeout);
 
-    const onmessage = data => {
+    const onmessage = (data) => {
       let response;
 
       try {
@@ -132,7 +132,7 @@ module.exports = class UDPClient extends nanoresource {
     };
 
     this.socket.on('data', onmessage);
-    this.socket.write(packet, err => {
+    this.socket.write(packet, (err) => {
       if (err) {
         cleanup(this);
         return this.inactive(callback, err);
@@ -192,7 +192,7 @@ module.exports = class UDPClient extends nanoresource {
       ],
     });
 
-    this.open(err => {
+    this.open((err) => {
       if (err) {
         return callback(err);
       }
@@ -232,7 +232,7 @@ module.exports = class UDPClient extends nanoresource {
       return;
     }
 
-    this.socket.write(request.message, err => {
+    this.socket.write(request.message, (err) => {
       if (err) {
         return callback(err);
       }
@@ -246,8 +246,8 @@ module.exports = class UDPClient extends nanoresource {
    * @private
    */
   _follow() {
-    this.queue.on('timeout', query => query.callback(new Error('ETIMEDOUT')));
-    this.socket.on('data', data => {
+    this.queue.on('timeout', (query) => query.callback(new Error('ETIMEDOUT')));
+    this.socket.on('data', (data) => {
       if (!secure.isEnough(data)) {
         return;
       }
@@ -262,7 +262,7 @@ module.exports = class UDPClient extends nanoresource {
 
       /** @type {AsyncQuery} */
       const box = this.queue.drop(
-        asyncQuery => Buffer.compare(response.clientNonce, asyncQuery.query.clientNonce) === 0
+        (asyncQuery) => Buffer.compare(response.clientNonce, asyncQuery.query.clientNonce) === 0
       );
 
       if (box == null) {

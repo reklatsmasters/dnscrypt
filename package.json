@@ -40,15 +40,20 @@
     "@nodertc/eslint-config": "^0.3.0",
     "@types/jest": "^26.0.3",
     "@types/node": "^14.0.14",
-    "eslint": "^6.6.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.4.0",
     "jest": "^26.1.0",
-    "prettier": "^1.18.2"
+    "prettier": "^2.0.5"
   },
   "engines": {
     "node": ">=12"
   },
   "eslintConfig": {
     "extends": "@nodertc",
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaVersion": 10
+    },
     "rules": {
       "security/detect-non-literal-fs-filename": "off",
       "consistent-return": "off",

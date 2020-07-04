@@ -87,7 +87,7 @@ class TimedQueue extends Emitter {
       this.timer = null;
     }
 
-    return queue.map(value => value.data);
+    return queue.map((value) => value.data);
   }
 
   /**
@@ -103,14 +103,14 @@ class TimedQueue extends Emitter {
     const removed = [];
     const now = Date.now();
 
-    this.queue.forEach(item => {
+    this.queue.forEach((item) => {
       if (item.timeout <= now) {
         removed.push(item);
         this.emit('timeout', item.data);
       }
     });
 
-    removed.forEach(item => uset.remove(this.queue, item));
+    removed.forEach((item) => uset.remove(this.queue, item));
 
     if (this.queue.length !== 0) {
       this.reset();
