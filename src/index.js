@@ -1,10 +1,10 @@
 'use strict';
 
 const { createResolver, Resolver } = require('./resolver');
-const dns = require('./dns');
+const globalDns = require('./global');
 
 module.exports = {
   createResolver,
   Resolver,
-  ...dns,
+  ...globalDns,
 };
