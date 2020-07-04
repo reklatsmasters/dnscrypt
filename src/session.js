@@ -3,7 +3,6 @@
 const Emitter = require('events');
 const dnsstamp = require('dnsstamp').DNSStamp;
 const debug = require('debug')('dnscrypt');
-const { TimedQueue } = require('./timed-queue');
 
 // Default is quad9 - no-dnssec, no-log, no-filter resolver.
 const DEFAULT_RESOLVER =
