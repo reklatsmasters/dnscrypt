@@ -3,8 +3,7 @@
 const dgram = require('dgram');
 const { isIP, isIPv4 } = require('net');
 const nanoresource = require('nanoresource/emitter');
-
-const isLegalPort = (port) => typeof port === 'number' && port > 0 && port < 0xffff;
+const { isLegalPort } = require('../utils');
 
 /**
  * @typedef {Object} UDPSocketOptions

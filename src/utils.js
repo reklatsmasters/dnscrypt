@@ -1,11 +1,14 @@
 'use strict';
 
+const isLegalPort = (port) => typeof port === 'number' && port > 0 && port < 0xffff;
+
 module.exports = {
   padLength,
   padRight,
   unpadRight,
   checkHostname,
   checkCallback,
+  isLegalPort,
 };
 
 /**
