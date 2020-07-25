@@ -2,15 +2,6 @@
 
 const isLegalPort = (port) => typeof port === 'number' && port > 0 && port < 0xffff;
 
-module.exports = {
-  padLength,
-  padRight,
-  unpadRight,
-  checkHostname,
-  checkCallback,
-  isLegalPort,
-};
-
 /**
  * Calculate padding for the buffer using the multiplier.
  * @param {Buffer} buf
@@ -81,3 +72,29 @@ function checkCallback(callback) {
     throw new TypeError('Argument "callback" should be a function');
   }
 }
+
+/**
+ * Internal class to store a callback
+ * associated with the query.
+ */
+class AsyncQuery {
+  /**
+   * @class {AsyncQuery}
+   * @param {secure.EncryptedQuery} query
+   * @param {Function} callback
+   */
+  constructor(query, callback) {
+    this.query = query;
+    this.callback = callback;
+  }
+}
+
+module.exports = {
+  padLength,
+  padRight,
+  unpadRight,
+  checkHostname,
+  checkCallback,
+  isLegalPort,
+  AsyncQuery,
+};

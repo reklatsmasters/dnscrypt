@@ -7,27 +7,12 @@ const UDPSocket = require('./udp-socket');
 const { validateCertificate } = require('../certificate');
 const secure = require('../secure');
 const { TimedQueue } = require('../timed-queue');
+const { AsyncQuery } = require('../utils');
 
 /**
  * @typedef {Object} UDPClientOptions
  * @property {Session} session Instance of dnscrypt session.
  */
-
-/**
- * Internal class to store a callback
- * associated with the query.
- */
-class AsyncQuery {
-  /**
-   * @class {AsyncQuery}
-   * @param {secure.EncryptedQuery} query
-   * @param {Function} callback
-   */
-  constructor(query, callback) {
-    this.query = query;
-    this.callback = callback;
-  }
-}
 
 /**
  * DNSCrypt UDP client abstraction.
