@@ -4,6 +4,7 @@ const Emitter = require('events');
 const rrtypes = require('dns-packet/types');
 const { Session } = require('./session');
 const UDPClient = require('./transport/udp-client');
+const TCPClient = require('./transport/tcp-client');
 
 const upper = (s) => s.toUpperCase();
 const lower = (s) => s.toLowerCase();
@@ -31,11 +32,12 @@ module.exports = class DNSCrypt extends Emitter {
       this.session.setResolver(options.sdns);
     }
 
+    // Main client.
     this.client = new UDPClient({ session: this.session });
   }
 
   /**
-   * Close the client.
+   * Close clients.
    * @param {Function} [callback]
    */
   close(callback = noop) {
@@ -46,10 +48,11 @@ module.exports = class DNSCrypt extends Emitter {
    * Generic resolve.
    * @param {string} hostname Hostname to resolve.
    * @param {string} rrtype Resource record type.
+   * @param {boolean} [noFilter]
    * @param {Function} callback
    * @returns {void}
    */
-  lookup(hostname, rrtype, callback) {
+  lookup(hostname, rrtype, noFilter, callback) {
     const host = lower(hostname);
     const type = upper(rrtype);
 
@@ -57,27 +60,53 @@ module.exports = class DNSCrypt extends Emitter {
       throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
     }
 
+    if (typeof noFilter === 'function') {
+      // eslint-disable-next-line no-param-reassign
+      callback = noFilter;
+      // eslint-disable-next-line no-param-reassign
+      noFilter = false;
+    } else {
+      // eslint-disable-next-line no-param-reassign
+      noFilter = !!noFilter;
+    }
+
+    /**
+     * Prepare response to next parsers.
+     * @param {Object} reply
+     */
+    function prepare(reply) {
+      if (reply.answers.length === 0) {
+        process.nextTick(callback, new Error('No data'));
+        return;
+      }
+
+      const answers = noFilter ? reply.answers : filterAnswers(reply, type, host);
+      process.nextTick(callback, null, answers);
+    }
+
     this.client.lookup(host, type, (error, response) => {
       if (error) {
         return callback(error);
       }
 
-      // Check truncated response
+      // Check truncated response and switch to TCP.
       if (response.flag_tc) {
-        return callback(new Error('Truncated response'));
+        const tcpclient = new TCPClient({ session: this.session });
+
+        tcpclient.lookup(host, type, (err, res) => {
+          tcpclient.close();
+
+          if (err) {
+            return process.nextTick(callback, err);
+          }
+
+          prepare(res);
+        });
+
+        return;
       }
 
-      if (response.answers.length === 0) {
-        return callback(new Error('No data'));
-      }
-
-      /** @type {Object[]} */
-      const answers = response.answers.filter(
-        (answer) =>
-          upper(answer.type) === type && lower(answer.name) === host && upper(answer.class) === 'IN'
-      );
-
-      callback(null, answers);
+      prepare(response);
     });
   }
 
@@ -335,7 +364,7 @@ module.exports = class DNSCrypt extends Emitter {
       throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
     }
 
-    this.lookup(hostname, rrtype, callback);
+    this.lookup(hostname, rrtype, true, callback);
   }
 };
 
@@ -343,3 +372,17 @@ module.exports = class DNSCrypt extends Emitter {
  * @private
  */
 function noop() {}
+
+/**
+ * Filter DNS answers.
+ * @param {Object} response
+ * @param {string} type
+ * @param {string} host
+ * @returns {Object[]}
+ */
+function filterAnswers(response, type, host) {
+  return response.answers.filter(
+    (answer) =>
+      upper(answer.type) === type && lower(answer.name) === host && upper(answer.class) === 'IN'
+  );
+}
