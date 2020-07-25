@@ -42,6 +42,8 @@ module.exports = class TCPSocket extends nanoresource {
    */
   _open(callback) {
     const socket = net.connect(this.port, this.address, connectHandler);
+    socket.once('error', errorHandler);
+
     this.socket = socket;
 
     const self = this;
