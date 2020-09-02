@@ -36,7 +36,7 @@ module.exports = class TCPClient extends nanoresource {
       address: options.session.serverAddress,
     });
     this.chunks = new BufferList();
-    this.queue = new TimedQueue(this.session.queryTimeout)
+    this.queue = new TimedQueue(this.session.queryTimeout);
   }
 
   /**
@@ -90,7 +90,7 @@ module.exports = class TCPClient extends nanoresource {
       }
 
       const packet = this.chunks.slice(2);
-      this.emit('encryptedPacket', packet)
+      this.emit('encryptedPacket', packet);
     });
 
     this.on('encryptedPacket', (encryptedPacket) => {

@@ -19,8 +19,8 @@ if (typeof DNSCRYPT_RESOLVER === 'string') {
     dnsstamp.parse(DNSCRYPT_RESOLVER);
     MAIN_RESOLVER = DNSCRYPT_RESOLVER;
     debug('set up resolver from env');
-  } catch (err) {
-    debug('unable to parse DNSCRYPT_RESOLVER env', err);
+  } catch (error) {
+    debug('unable to parse DNSCRYPT_RESOLVER env', error);
   }
 }
 

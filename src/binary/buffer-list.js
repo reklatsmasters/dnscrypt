@@ -277,7 +277,7 @@ const fixedReadMethods = {
   readUInt8: 1,
 };
 
-Object.keys(fixedReadMethods).forEach(method => {
+Object.keys(fixedReadMethods).forEach((method) => {
   const gen = createFunction();
 
   gen(`
@@ -298,7 +298,7 @@ Object.keys(fixedReadMethods).forEach(method => {
 
 const metaReadMethods = ['readIntBE', 'readIntLE', 'readUIntBE', 'readUIntLE'];
 
-metaReadMethods.forEach(method => {
+metaReadMethods.forEach((method) => {
   const gen = createFunction();
 
   gen(`
@@ -333,7 +333,7 @@ const fixedWriteMethods = {
   writeUInt8: 1,
 };
 
-Object.keys(fixedWriteMethods).forEach(method => {
+Object.keys(fixedWriteMethods).forEach((method) => {
   const gen = createFunction();
 
   gen(`
@@ -348,14 +348,9 @@ Object.keys(fixedWriteMethods).forEach(method => {
   BufferList.prototype[method] = gen.toFunction();
 });
 
-const metaWriteMethods = [
-  'writeIntBE',
-  'writeIntLE',
-  'writeUIntBE',
-  'writeUIntLE',
-];
+const metaWriteMethods = ['writeIntBE', 'writeIntLE', 'writeUIntBE', 'writeUIntLE'];
 
-metaWriteMethods.forEach(method => {
+metaWriteMethods.forEach((method) => {
   const gen = createFunction();
 
   gen(`
