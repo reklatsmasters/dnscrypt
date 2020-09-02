@@ -5,7 +5,7 @@ const {
   decode,
   types: { uint32be, uint16be, buffer },
 } = require('binary-data');
-const debug = require('debug')('dnscrypt');
+const debug = require('util').debuglog('dnscrypt');
 
 module.exports = {
   validate,

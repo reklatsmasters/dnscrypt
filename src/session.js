@@ -2,7 +2,7 @@
 
 const Emitter = require('events');
 const dnsstamp = require('dnsstamp').DNSStamp;
-const debug = require('debug')('dnscrypt');
+const debug = require('util').debuglog('dnscrypt');
 
 const { DNSCRYPT_RESOLVER } = process.env;
 
