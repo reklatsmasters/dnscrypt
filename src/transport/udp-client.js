@@ -1,13 +1,12 @@
 'use strict';
 
 const nanoresource = require('nanoresource/emitter');
-const random = require('random-int');
 const dns = require('dns-packet');
 const UDPSocket = require('./udp-socket');
 const { validateCertificate } = require('../certificate');
 const secure = require('../secure');
 const { TimedQueue } = require('../timed-queue');
-const { AsyncQuery } = require('../utils');
+const { AsyncQuery, random } = require('../utils');
 
 /**
  * @typedef {Object} UDPClientOptions

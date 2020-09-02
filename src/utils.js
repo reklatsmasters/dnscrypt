@@ -89,6 +89,27 @@ class AsyncQuery {
   }
 }
 
+/**
+ * Generate a random integer.
+ * @param {number} minimum
+ * @param {number} maximum
+ * @returns {number}
+ */
+function random(minimum, maximum) {
+  if (maximum === undefined) {
+    // eslint-disable-next-line no-param-reassign
+    maximum = minimum;
+    // eslint-disable-next-line no-param-reassign
+    minimum = 0;
+  }
+
+  if (typeof minimum !== 'number' || typeof maximum !== 'number') {
+    throw new TypeError('Expected all arguments to be numbers');
+  }
+
+  return Math.floor(Math.random() * (maximum - minimum + 1) + minimum);
+}
+
 module.exports = {
   padLength,
   padRight,
@@ -97,4 +118,5 @@ module.exports = {
   checkCallback,
   isLegalPort,
   AsyncQuery,
+  random,
 };

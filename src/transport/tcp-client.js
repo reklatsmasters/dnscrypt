@@ -1,11 +1,10 @@
 'use strict';
 
 const nanoresource = require('nanoresource/emitter');
-const random = require('random-int');
 const dns = require('dns-packet');
 const BufferList = require('../binary/buffer-list');
 const TCPSocket = require('./tcp-socket');
-const { AsyncQuery } = require('../utils');
+const { AsyncQuery, random } = require('../utils');
 const secure = require('../secure');
 const { TimedQueue } = require('../timed-queue');
 
