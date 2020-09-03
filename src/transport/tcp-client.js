@@ -2,7 +2,6 @@
 
 const nanoresource = require('nanoresource/emitter');
 const dns = require('dns-packet');
-const BufferList = require('../binary/buffer-list');
 const TCPSocket = require('./tcp-socket');
 const { AsyncQuery, random } = require('../utils');
 const secure = require('../secure');
@@ -35,8 +34,11 @@ module.exports = class TCPClient extends nanoresource {
       port: options.session.serverPort,
       address: options.session.serverAddress,
     });
-    this.chunks = new BufferList();
     this.queue = new TimedQueue(this.session.queryTimeout);
+
+    this._chunks = [];
+    this._chunksLength = 0;
+    this._packetSize = 0;
   }
 
   /**
@@ -77,19 +79,19 @@ module.exports = class TCPClient extends nanoresource {
     this.queue.on('timeout', (query) => query.callback(new Error('ETIMEDOUT')));
 
     this.socket.on('data', (data) => {
-      this.chunks.append(data);
+      this._chunks.push(data);
+      this._chunksLength += data.length;
 
-      if (this.chunks.length < 2) {
+      if (this._packetSize === 0 && this._chunksLength >= 2 && this._chunks.length > 0) {
+        const chunk = this._chunks[0].length >= 2 ? this._chunks[0] : Buffer.concat(this._chunks);
+        this._packetSize = chunk.readUInt16BE(0);
+      }
+
+      if (this._chunksLength < this._packetSize + 2) {
         return;
       }
 
-      const size = this.chunks.readUInt16BE(0);
-
-      if (this.chunks.length < size + 2) {
-        return;
-      }
-
-      const packet = this.chunks.slice(2);
+      const packet = Buffer.concat(this._chunks).slice(2, this._packetSize + 2);
       this.emit('encryptedPacket', packet);
     });
 
