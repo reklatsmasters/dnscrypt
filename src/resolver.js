@@ -5,6 +5,27 @@ const DNSCrypt = require('./dnscrypt');
 const { checkHostname, checkCallback } = require('./utils');
 
 /**
+ * Create promise for async answer.
+ * @private
+ * @returns {Object}
+ */
+function setupPromise() {
+  let callback;
+
+  const promise = new Promise((resolve, reject) => {
+    callback = function promiseCallback(err, res) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    };
+  });
+
+  return { callback, promise };
+}
+
+/**
  * A public DNS resolver interface.
  */
 class Resolver {
@@ -41,6 +62,7 @@ class Resolver {
    * @param {string} hostname Hostname to resolve.
    * @param {string} [rrtype] Resource record type.
    * @param {Function} callback
+   * @returns {void}
    */
   resolve(hostname, rrtype, callback) {
     if (typeof rrtype === 'function') {
@@ -48,14 +70,22 @@ class Resolver {
       rrtype = 'A'; // eslint-disable-line no-param-reassign
     }
 
+    if (typeof rrtype !== 'string') {
+      rrtype = 'A'; // eslint-disable-line no-param-reassign
+    }
+
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
-    if (typeof rrtype !== 'string') {
-      throw new TypeError(`The value "${rrtype}" is invalid for option "rrtype"`);
-    }
-
     this.#dnscrypt.resolve(hostname, rrtype.toUpperCase(), callback);
+    return promise;
   }
 
   /**
@@ -63,6 +93,7 @@ class Resolver {
    * @param {string} hostname
    * @param {Object} [options]
    * @param {Function} callback
+   * @returns {void}
    */
   resolve4(hostname, options, callback) {
     if (typeof options === 'function') {
@@ -70,10 +101,22 @@ class Resolver {
       options = { ttl: false }; // eslint-disable-line no-param-reassign
     }
 
+    if (typeof options === 'undefined') {
+      options = { ttl: false }; // eslint-disable-line no-param-reassign
+    }
+
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolve4(hostname, { ttl: !!options.ttl }, callback);
+    return promise;
   }
 
   /**
@@ -81,6 +124,7 @@ class Resolver {
    * @param {string} hostname
    * @param {Object} [options]
    * @param {Function} callback
+   * @returns {void}
    */
   resolve6(hostname, options, callback) {
     if (typeof options === 'function') {
@@ -88,10 +132,22 @@ class Resolver {
       options = { ttl: false }; // eslint-disable-line no-param-reassign
     }
 
+    if (typeof options === 'undefined') {
+      options = { ttl: false }; // eslint-disable-line no-param-reassign
+    }
+
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolve6(hostname, { ttl: !!options.ttl }, callback);
+    return promise;
   }
 
   /**
@@ -101,10 +157,18 @@ class Resolver {
    * @returns {void}
    */
   resolveCname(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolveCname(hostname, callback);
+    return promise;
   }
 
   /**
@@ -114,10 +178,18 @@ class Resolver {
    * @returns {void}
    */
   resolveNs(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolveNs(hostname, callback);
+    return promise;
   }
 
   /**
@@ -127,10 +199,18 @@ class Resolver {
    * @returns {void}
    */
   resolvePtr(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolvePtr(hostname, callback);
+    return promise;
   }
 
   /**
@@ -140,10 +220,18 @@ class Resolver {
    * @returns {void}
    */
   resolveMx(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolveMx(hostname, callback);
+    return promise;
   }
 
   /**
@@ -153,10 +241,18 @@ class Resolver {
    * @returns {void}
    */
   resolveSoa(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolveSoa(hostname, callback);
+    return promise;
   }
 
   /**
@@ -166,10 +262,18 @@ class Resolver {
    * @returns {void}
    */
   resolveSrv(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolveSrv(hostname, callback);
+    return promise;
   }
 
   /**
@@ -179,10 +283,18 @@ class Resolver {
    * @returns {void}
    */
   resolveTxt(hostname, callback) {
+    let promise;
+
+    if (typeof callback !== 'function') {
+      // eslint-disable-next-line no-param-reassign
+      ({ promise, callback } = setupPromise());
+    }
+
     checkHostname(hostname);
     checkCallback(callback);
 
     this.#dnscrypt.resolveTxt(hostname, callback);
+    return promise;
   }
 }
 

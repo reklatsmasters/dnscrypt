@@ -105,26 +105,11 @@ describe('test custom resolver', () => {
     expect(response).toBe('1.example.com');
   });
 
-  test('unref', () => {
-    createResolver({ unref: true });
-
-    expect(unref).toBeCalled();
-  });
-
   test('close', () => {
     const rslv = createResolver();
     rslv.close();
 
     expect(close).toBeCalled();
-  });
-
-  test('setResolver', () => {
-    const sdns = 'sdns://123456';
-
-    const rslv = createResolver();
-    rslv.setServers(sdns);
-
-    expect(setResolver).toBeCalledWith(sdns);
   });
 
   test('getServers', () => {
