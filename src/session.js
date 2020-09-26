@@ -48,7 +48,7 @@ class Session extends Emitter {
     this.sdns = sdns;
     this.resolver = dnsstamp.parse(sdns);
 
-    const [address, port] = this.resolver.addr.split(':');
+    const [address, port = 443] = this.resolver.addr.split(':');
     this.serverAddress = address;
     this.serverPort = Number(port);
 
